@@ -45,10 +45,17 @@ def deobfuscate(request, key, juice=None):
     except Resolver404:
         return HttpResponseNotFound()
 
-    # fix-up the environ object
-    environ = request.environ.copy()
-    environ['PATH_INFO'] = path[len(environ['SCRIPT_NAME']):]
-    environ['QUERY_STRING'] = query
+    # when using AsgiRequest its throwing error
+    # Patch for it
+    try:
+        # fix-up the environ object
+        environ = request.environ.copy()
+        environ['PATH_INFO'] = path[len(environ['SCRIPT_NAME']):]
+        environ['QUERY_STRING'] = query
+    except:
+        environ = request.message.copy()
+        environ['query_string'] = query
+        environ['path'] = path[len(environ['root_path']):]
 
     # init a new request
     patched_request = request.__class__(environ)
